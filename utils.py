@@ -68,7 +68,7 @@ def create_vector(word, word2vec, word_vector_size, silent=False):
         print "utils.py::create_vector => %s is missing" % word
     return vector
 
-
+# Create a vector for these words if they are not in word2vec.
 def process_word(word, word2vec, vocab, ivocab, word_vector_size, to_return="word2vec", silent=False):
     if not word in word2vec:
         create_vector(word, word2vec, word_vector_size, silent)

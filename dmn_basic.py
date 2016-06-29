@@ -36,6 +36,7 @@ class DMN_basic:
         self.l2 = l2
         self.normalize_attention = normalize_attention
         
+	# Process the input into its different parts and calculate the input mask
         self.train_input, self.train_q, self.train_answer, self.train_input_mask = self._process_input(train_raw)
         self.test_input, self.test_q, self.test_answer, self.test_input_mask = self._process_input(test_raw)
         self.vocab_size = len(self.vocab)
@@ -270,9 +271,16 @@ class DMN_basic:
             for (x, y) in zip(self.params, loaded_params):
                 x.set_value(y)
 
-    
     def _process_input(self, data_raw):
-        inputs = []
+    '''
+    	This module processes the raw data input and grabs all the relevant sections and calculates the input_mask.
+
+	Args:
+		data_raw: raw data coming in from main class.
+	Returns:
+		inputs section, answers section, questions section, and input_masks as numpy arrays.
+    '''
+	inputs = []
         answers = []
         input_masks = []
 	questions = []
@@ -282,6 +290,7 @@ class DMN_basic:
             q = x["Q"].lower().split(' ')
 	    q = [w for w in q if len(w) > 0]
 
+            # Process the words from the input, answers, and questions to see what needs a new vector in word2vec.
 	    inp_vector = [utils.process_word(word = w, 
                                         word2vec = self.word2vec, 
                                         vocab = self.vocab, 
@@ -303,9 +312,10 @@ class DMN_basic:
                                             ivocab = self.ivocab, 
                                             word_vector_size = self.word_vector_size, 
                                             to_return = "index"))
-            # NOTE: here we assume the answer is one word! 
+            
+	    # NOTE: here we assume the answer is one word! 
             if self.input_mask_mode == 'word':
-                input_masks.append(np.array([index for index, w in enumerate(inp)], dtype=np.int32)) 
+                input_masks.append(np.array([index for index, w in enumerate(inp)], dtype=np.int32)) # Get the input_masks for the data
             elif self.input_mask_mode == 'sentence': 
                 input_masks.append(np.array([index for index, w in enumerate(inp) if w == '.'], dtype=np.int32)) 
             else:

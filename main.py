@@ -68,12 +68,13 @@ if args.network == 'dmn_batch':
     import dmn_batch
     dmn = dmn_batch.DMN_batch(**args_dict)
 
+# The basic module is implemented for document similarity
 elif args.network == 'dmn_basic':
     import dmn_basic
     if (args.batch_size != 1):
         print "==> no minibatch training, argument batch_size is useless"
         args.batch_size = 1
-    dmn = dmn_basic.DMN_basic(**args_dict)
+    dmn = dmn_basic.DMN_basic(**args_dict) # Initialize the dmn basic with all the arguments available. This also initializes theano functions and parameters.
 
 elif args.network == 'dmn_smooth':
     import dmn_smooth
@@ -96,6 +97,40 @@ else:
 if args.load_state != "":
     dmn.load_state(args.load_state)
 
+# Run through train epochs and steps
+if args.mode == 'train':
+    print "==> training"   	
+    skipped = 0
+    for epoch in range(args.epochs):
+        start_time = time.time()
+        
+        if args.shuffle:
+            dmn.shuffle_train_set()
+        
+        _, skipped = do_epoch('train', epoch, skipped)
+        
+        epoch_loss, skipped = do_epoch('test', epoch, skipped)
+        
+        state_name = 'states/%s.epoch%d.test%.5f.state' % (network_name, epoch, epoch_loss)
+
+        if (epoch % args.save_every == 0):    
+            print "==> saving ... %s" % state_name
+            dmn.save_params(state_name, epoch)
+        
+        print "epoch %d took %.3fs" % (epoch, float(time.time()) - start_time)
+
+elif args.mode == 'test':
+    file = open('last_tested_model.json', 'w+')
+    data = dict(args._get_kwargs())
+    data["id"] = network_name
+    data["name"] = network_name
+    data["description"] = ""
+    data["vocab"] = dmn.vocab.keys()
+    json.dump(data, file, indent=2)
+    do_epoch('test', 0)
+
+else:
+    raise Exception("unknown mode")
 
 def do_epoch(mode, epoch, skipped=0):
     # mode is 'train' or 'test'
@@ -146,38 +181,3 @@ def do_epoch(mode, epoch, skipped=0):
     print "accuracy: %.2f percent" % (accuracy * 100.0 / batches_per_epoch / args.batch_size)
     
     return avg_loss, skipped
-
-
-if args.mode == 'train':
-    print "==> training"   	
-    skipped = 0
-    for epoch in range(args.epochs):
-        start_time = time.time()
-        
-        if args.shuffle:
-            dmn.shuffle_train_set()
-        
-        _, skipped = do_epoch('train', epoch, skipped)
-        
-        epoch_loss, skipped = do_epoch('test', epoch, skipped)
-        
-        state_name = 'states/%s.epoch%d.test%.5f.state' % (network_name, epoch, epoch_loss)
-
-        if (epoch % args.save_every == 0):    
-            print "==> saving ... %s" % state_name
-            dmn.save_params(state_name, epoch)
-        
-        print "epoch %d took %.3fs" % (epoch, float(time.time()) - start_time)
-
-elif args.mode == 'test':
-    file = open('last_tested_model.json', 'w+')
-    data = dict(args._get_kwargs())
-    data["id"] = network_name
-    data["name"] = network_name
-    data["description"] = ""
-    data["vocab"] = dmn.vocab.keys()
-    json.dump(data, file, indent=2)
-    do_epoch('test', 0)
-
-else:
-    raise Exception("unknown mode")
