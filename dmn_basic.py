@@ -354,7 +354,7 @@ class DMN_basic:
             raise Exception("Cannot train during test mode")
         
         if mode == "train":
-            theano_fn = self.train_fn 
+            theano_fn = self.train_fn # Theano function set
             inputs = self.train_input
             qs = self.train_q
             answers = self.train_answer

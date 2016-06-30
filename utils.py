@@ -37,6 +37,7 @@ def init_data(fname):
         		task["A"] = novelty
         		tasks.append(task.copy())
 			documents += text
+	#documents = ""
     return tasks
 
 # Go fetch and process the raw data from the file system using init_data. See init_data.
