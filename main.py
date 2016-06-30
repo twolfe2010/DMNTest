@@ -107,9 +107,9 @@ if args.mode == 'train':
         if args.shuffle:
             dmn.shuffle_train_set()
         
-        _, skipped = do_epoch('train', epoch, skipped)
+        _, skipped = do_epoch('train', epoch, skipped) # Run do_epoch for train
         
-        epoch_loss, skipped = do_epoch('test', epoch, skipped)
+        epoch_loss, skipped = do_epoch('test', epoch, skipped) # Run do_epoch for test
         
         state_name = 'states/%s.epoch%d.test%.5f.state' % (network_name, epoch, epoch_loss)
 
@@ -133,6 +133,18 @@ else:
     raise Exception("unknown mode")
 
 def do_epoch(mode, epoch, skipped=0):
+    '''
+    	This function runs the epochs for the training of the neural network. It calls the steps in the epoch
+	and allows for the tweaking of the parameter values.
+
+	Args:
+		mode (str): 'train' or 'test' for whether this is the training or testing step
+		epoch (int): the epoch number currently on
+		skipped (int): how many steps have been skipped because of no change in gradient
+	Returns:
+		avg_loss (double): the new calculated average loss
+		skipped (int): how many steps skipped since the beginning of running the epoch added to the previous skip value
+    '''
     # mode is 'train' or 'test'
     y_true = []
     y_pred = []
@@ -142,7 +154,7 @@ def do_epoch(mode, epoch, skipped=0):
     batches_per_epoch = dmn.get_batches_per_epoch(mode)
     
     for i in range(0, batches_per_epoch):
-        step_data = dmn.step(i, mode)
+        step_data = dmn.step(i, mode) # Run step using the dynamic memory network object
         prediction = step_data["prediction"]
         answers = step_data["answers"]
         current_loss = step_data["current_loss"]

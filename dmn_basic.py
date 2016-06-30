@@ -341,6 +341,15 @@ class DMN_basic:
         
     
     def step(self, batch_index, mode):
+        '''
+            This function is one step in an epoch and will run a training or testing step depending on the parameter.
+
+	    Args:
+		batch_index (int): step number for the epoch
+		mode (str): 'train' or 'test' based on the mode of 
+	    Returns:
+	        Dictionary of predictions, answers, loss, number skipped, and the normal and gradient parameters
+	'''
         if mode == "train" and self.mode == "test":
             raise Exception("Cannot train during test mode")
         
@@ -368,7 +377,7 @@ class DMN_basic:
         grad_norm = float('NaN')
         
         if mode == 'train':
-            gradient_value = self.get_gradient_fn(inp, q, ans, input_mask)
+            gradient_value = self.get_gradient_fn(inp, q, ans, input_mask) # Get and calculate the gradient function
             grad_norm = np.max([utils.get_norm(x) for x in gradient_value])
             
             if (np.isnan(grad_norm)):
@@ -377,7 +386,7 @@ class DMN_basic:
                 skipped = 1
         
         if skipped == 0:
-            ret = theano_fn(inp, q, ans, input_mask)
+            ret = theano_fn(inp, q, ans, input_mask) # Run the theano function
         else:
             ret = [-1, -1]
         
